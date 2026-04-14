@@ -1,5 +1,6 @@
 langgraph
 networkx
+pandas
 scikit-learn
 python-dotenv
 pytest

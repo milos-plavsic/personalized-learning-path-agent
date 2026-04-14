@@ -1,19 +1,12 @@
 import os
 
-
-def generate_plan(goal: str) -> dict:
-    return {
-        "goal": goal,
-        "weekly_hours": 8,
-        "next_module": "model evaluation fundamentals",
-        "estimated_weeks": 12,
-    }
+from app.student_risk import generate_plan
 
 
 def main() -> None:
-    goal = os.getenv("DEMO_GOAL", "Become an ML engineer")
+    goal = os.getenv("DEMO_GOAL", "Improve Portuguese course outcomes")
     result = generate_plan(goal)
-    print("Personalized Learning Path Agent")
+    print("Personalized Learning Path Agent (education cohort model)")
     for k, v in result.items():
         print(f"{k}: {v}")
 

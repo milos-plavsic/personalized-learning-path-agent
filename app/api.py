@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from app.main import generate_plan
+from app.student_risk import generate_plan
 
 app = FastAPI(title="Personalized Learning Path Agent", version="0.1.0")
 
