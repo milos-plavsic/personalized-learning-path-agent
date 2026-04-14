@@ -1,6 +1,36 @@
 # 07 - Personalized Learning Path Agent
 
+[![CI](https://github.com/milos-plavsic/personalized-learning-path-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/milos-plavsic/personalized-learning-path-agent/actions/workflows/ci.yml)
+[![Python3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+
 An adaptive learning assistant that builds and continuously updates skill roadmaps using user goals, progress signals, and prerequisite graph reasoning.
+
+## Quickstart
+
+```bash
+make install
+make run
+make api
+make test
+```
+
+Docker API: `make docker-api`.
+
+## API
+
+- OpenAPI docs: `http://127.0.0.1:8000/docs`
+- Health: `GET /health`
+- Roadmap: `POST /v1/roadmap` with JSON body `{"goal":"..."}`
+
+## Architecture
+
+```mermaid
+flowchart LR
+  G[Goals] --> M[Prerequisite map]
+  M --> B[Gaps]
+  B --> P[Roadmap]
+  P --> F[Feedback loop]
+```
 
 ## Why This Project Stands Out
 

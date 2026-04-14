@@ -2,3 +2,6 @@ langgraph
 networkx
 scikit-learn
 python-dotenv
+pytest
+fastapi
+uvicorn[standard]
