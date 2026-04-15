@@ -10,6 +10,13 @@ from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 
 from app.datasets import DATA_SOURCE, load_student_portuguese
+from app.orchestration_policy import (
+    confidence_label,
+    decide_loop,
+    normalized_stability,
+    normalize_threshold,
+    weighted_confidence,
+)
 
 
 class IterationRisk(TypedDict):
@@ -56,26 +63,10 @@ class RiskState(TypedDict, total=False):
     plan_text: str
 
 
-def _clip01(x: float) -> float:
-    return float(max(0.0, min(1.0, x)))
-
-
-def _confidence(auc: float, f1_at_risk: float, cv_std: float) -> float:
-    return _clip01(0.55 * auc + 0.35 * f1_at_risk + 0.10 * (1.0 - min(cv_std, 1.0)))
-
-
-def _label(score: float) -> str:
-    if score >= 0.8:
-        return "high"
-    if score >= 0.6:
-        return "medium"
-    return "low"
-
-
 def _validate(state: RiskState) -> RiskState:
     return {
         "goal": state.get("goal", "improve grade outcomes"),
-        "confidence_threshold": _clip01(float(state.get("confidence_threshold", 0.72))),
+        "confidence_threshold": normalize_threshold(state.get("confidence_threshold", 0.72)),
         "max_iterations": max(1, int(state.get("max_iterations", 3))),
         "random_state": int(state.get("random_state", 42)),
         "iteration": 0,
@@ -155,18 +146,19 @@ def _train_eval(state: RiskState) -> RiskState:
 
 
 def _assess(state: RiskState) -> RiskState:
-    score = _confidence(state["test_auc"], state["at_risk_f1"], state["cv_auc_std"])
-    conf_label = _label(score)
-    reached_conf = score >= state["confidence_threshold"]
-    reached_limit = state["iteration"] >= state["max_iterations"]
-    continue_loop = not reached_conf and not reached_limit
-
-    if reached_conf:
-        stop_reason = "confidence_threshold_reached"
-    elif reached_limit:
-        stop_reason = "max_iterations_reached"
-    else:
-        stop_reason = "retry_with_additional_information"
+    components = {
+        "primary_quality": state["test_auc"],
+        "secondary_quality": state["at_risk_f1"],
+        "stability": normalized_stability(state["cv_auc_std"]),
+    }
+    score = weighted_confidence(components)
+    conf_label = confidence_label(score)
+    loop = decide_loop(
+        confidence_score=score,
+        confidence_threshold=state["confidence_threshold"],
+        iteration=state["iteration"],
+        max_iterations=state["max_iterations"],
+    )
 
     h: IterationRisk = {
         "iteration": state["iteration"],
@@ -183,8 +175,8 @@ def _assess(state: RiskState) -> RiskState:
     return {
         "confidence_score": score,
         "confidence_label": conf_label,
-        "continue_loop": continue_loop,
-        "stop_reason": stop_reason,
+        "continue_loop": loop["continue_loop"],
+        "stop_reason": loop["stop_reason"],
         "history": [*state["history"], h],
     }
 
