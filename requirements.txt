@@ -1,7 +1,9 @@
 langgraph
 networkx
 pandas
+numpy
 scikit-learn
+matplotlib
 python-dotenv
 pytest
 fastapi
