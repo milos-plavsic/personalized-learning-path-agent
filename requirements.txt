@@ -1,0 +1,15 @@
+# Shared core package (canonical: https://github.com/milos-plavsic/ml-core)
+agent-core @ git+https://github.com/milos-plavsic/agent-core.git@v1.2.1
+ml-core @ git+https://github.com/milos-plavsic/ml-core.git@v1.0.0
+
+langgraph
+networkx
+pandas
+numpy
+scikit-learn
+matplotlib
+python-dotenv
+pytest
+httpx
+fastapi
+uvicorn[standard]
